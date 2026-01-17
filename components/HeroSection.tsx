@@ -131,7 +131,7 @@ export default function HeroSection({ onConfettiClick }: HeroSectionProps) {
           e.stopPropagation()
           toggleAudio()
         }}
-        className="absolute top-10 right-10 z-50 bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/50 shadow-xl"
+        className="absolute bottom-10 right-10 z-50 bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/50 shadow-xl"
       >
         <span className="text-2xl">{isPlaying ? '🔊' : '🔇'}</span>
       </motion.button>
@@ -143,7 +143,7 @@ export default function HeroSection({ onConfettiClick }: HeroSectionProps) {
           transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
           className="mb-8 md:mb-10 flex flex-col items-center gap-6"
         >
-          
+
           <h2 className="text-5xl md:text-7xl font-dancing font-bold text-white drop-shadow-2xl py-2">
             Happy Birthday Srii! ❤️
           </h2>
