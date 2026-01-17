@@ -14,6 +14,20 @@ export default function HeroSection({ onConfettiClick }: HeroSectionProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const isInView = useInView(containerRef, { amount: 0.5 })
   const [hearts, setHearts] = useState<Array<{ id: number; x: number; y: number }>>([])
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  const toggleAudio = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause()
+        setIsPlaying(false)
+      } else {
+        audioRef.current.play().then(() => {
+          setIsPlaying(true)
+        }).catch(err => console.log("Manual play blocked:", err))
+      }
+    }
+  }
 
   useEffect(() => {
     let confettiInterval: NodeJS.Timeout
@@ -29,25 +43,38 @@ export default function HeroSection({ onConfettiClick }: HeroSectionProps) {
 
       // Play audio
       if (audioRef.current) {
-        // Only reset if it was paused to avoid restarting on every tiny scroll
-        if (audioRef.current.paused) {
-          audioRef.current.currentTime = 0
-          audioRef.current.play().catch((error) => {
-            console.log('Audio playback blocked or failed:', error)
-            const playOnInteraction = () => {
-              if (audioRef.current && audioRef.current.paused) {
-                audioRef.current.currentTime = 0
-                audioRef.current.play()
-              }
-              document.removeEventListener('click', playOnInteraction)
-            }
-            document.addEventListener('click', playOnInteraction)
-          })
+        const playMusic = () => {
+          if (audioRef.current && audioRef.current.paused) {
+            audioRef.current.play().then(() => {
+              setIsPlaying(true)
+            }).catch((error) => {
+              console.log('Audio playback blocked, waiting for interaction:', error)
+            })
+          }
+        }
+
+        // Try to play immediately
+        playMusic()
+
+        // Also listen for any interaction to play
+        const handleInteraction = () => {
+          playMusic()
+          document.removeEventListener('click', handleInteraction)
+          document.removeEventListener('touchstart', handleInteraction)
+        }
+
+        document.addEventListener('click', handleInteraction)
+        document.addEventListener('touchstart', handleInteraction)
+
+        return () => {
+          document.removeEventListener('click', handleInteraction)
+          document.removeEventListener('touchstart', handleInteraction)
         }
       }
     } else {
       if (audioRef.current) {
         audioRef.current.pause()
+        setIsPlaying(false)
       }
     }
 
@@ -94,6 +121,21 @@ export default function HeroSection({ onConfettiClick }: HeroSectionProps) {
         </div>
       </div>
 
+      {/* Audio Toggle Button */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={(e) => {
+          e.stopPropagation()
+          toggleAudio()
+        }}
+        className="absolute top-10 right-10 z-50 bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/50 shadow-xl"
+      >
+        <span className="text-2xl">{isPlaying ? '🔊' : '🔇'}</span>
+      </motion.button>
+
       <div className="relative z-10 text-center max-w-5xl mx-auto px-4 py-8 md:py-0">
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
@@ -101,15 +143,7 @@ export default function HeroSection({ onConfettiClick }: HeroSectionProps) {
           transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
           className="mb-8 md:mb-10 flex flex-col items-center gap-6"
         >
-          <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white/50 shadow-2xl mx-auto ring-4 ring-rose-200 dark:ring-rose-900">
-            <Image
-              src="/assets/Srii.jpeg"
-              alt="Srii"
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
+          
           <h2 className="text-5xl md:text-7xl font-dancing font-bold text-white drop-shadow-2xl py-2">
             Happy Birthday Srii! ❤️
           </h2>
